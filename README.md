@@ -17,6 +17,7 @@ If you want to force the installation, overwrite the binary or update restic, yo
 - `restic_user`: user to run restic as (`root`)
 - `restic_user_home`: home directory of the restic_user (`/root`)
 - `restic_password`: password used for repository encryption
+- `restic_password_file`: file to use for password for repository encryption
 - `restic_repository_name`: the name of the repository (`restic`)
 - `restic_check`: run `restic check` as `ExecStartPre` if true (`false`)
 - `restic_default_folders`: a default list of folders that restic will backup (`/etc/`, `/root` and `/var/log`)
