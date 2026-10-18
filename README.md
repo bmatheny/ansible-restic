@@ -54,6 +54,8 @@ The SSH configuration will be written in `{{ restic_user_home }}/.ssh/config`.
 - `restic_aws_access_key_id`: `AWS_ACCESS_KEY_ID`
 - `restic_aws_secret_access_key`: `AWS_SECRET_ACCESS_KEY`
 
+The keys are written to `{{ restic_user_home }}/.restic-backup.env` (mode `0600`), which the service loads with `EnvironmentFile=`, so they stay out of the world-readable unit file. They are also in `{{ restic_user_home }}/.restic_env` for running restic from a shell.
+
 ### Sytemd service and timer
 
 A `restic-backup.service` service will be created with all the parameters defined above. The service is of type `oneshot` and will be triggered periodically with `restic-backup.timer`.

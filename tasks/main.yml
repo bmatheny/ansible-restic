@@ -22,6 +22,7 @@
     src: ssh_private_key.j2
     dest: "{{ restic_ssh_private_key_path }}"
     mode: "0600"
+  diff: false
   when: restic_ssh_private_key is defined and restic_ssh_enabled
 
 - name: Add restic_env in home folder
@@ -31,6 +32,17 @@
     owner: root
     group: root
     mode: "0600"
+  diff: false
+
+# The service unit is world-readable, so the S3 keys go in a separate file it loads
+- name: Add environment file for the systemd service
+  ansible.builtin.template:
+    src: restic-backup.env.j2
+    dest: "{{ restic_user_home }}/.restic-backup.env"
+    owner: "{{ restic_user }}"
+    mode: "0600"
+  diff: false
+  when: restic_aws_access_key_id is defined and restic_aws_secret_access_key is defined
 
 - name: Add systemd service for restic
   ansible.builtin.template:

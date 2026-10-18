@@ -19,8 +19,7 @@ Environment="RESTIC_PASSWORD={{ restic_password}}"
 {% endif %}
 
 {% if restic_aws_access_key_id is defined and restic_aws_secret_access_key is defined %}
-Environment="AWS_ACCESS_KEY_ID={{ restic_aws_access_key_id}}"
-Environment="AWS_SECRET_ACCESS_KEY={{ restic_aws_secret_access_key}}"
+EnvironmentFile={{ restic_user_home }}/.restic-backup.env
 {% endif %}
 
 ExecStartPre=/bin/sh -c '{{ restic_path }} snapshots || {{ restic_path }} init'
