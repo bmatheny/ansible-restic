@@ -44,6 +44,28 @@
   diff: false
   when: restic_aws_access_key_id is defined and restic_aws_secret_access_key is defined
 
+# Never initialize on our own: a missing repository can be an unmounted share, and
+# restic init would then create a new repository on the local disk.
+# The credentials come from .restic_env, so none appear in the task arguments.
+- name: Check that the restic repository exists
+  ansible.builtin.shell: ". {{ restic_user_home }}/.restic_env && {{ restic_path }} --no-lock cat config > /dev/null"
+  register: restic_repository_check
+  changed_when: false
+  failed_when: restic_repository_check.rc not in [0, 10]
+  check_mode: false
+
+- name: Stop if the restic repository is missing
+  ansible.builtin.fail:
+    msg: >-
+      {{ restic_repository_check.stderr }}
+      If the repository is on a mount, check that the mount is up.
+      If this is a new repository, run once with -e restic_init=true.
+  when: restic_repository_check.rc == 10 and not (restic_init | bool)
+
+- name: Initialize the restic repository (restic_init is true)
+  ansible.builtin.shell: ". {{ restic_user_home }}/.restic_env && {{ restic_path }} init"
+  when: restic_repository_check.rc == 10 and (restic_init | bool)
+
 - name: Add systemd service for restic
   ansible.builtin.template:
     src: restic-backup.service.j2

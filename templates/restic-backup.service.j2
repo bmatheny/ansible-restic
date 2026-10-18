@@ -1,5 +1,8 @@
 [Unit]
 Description=Restic backup
+{% if not restic_ssh_enabled and restic_repository is match('(local:)?/') %}
+RequiresMountsFor={{ restic_repository | regex_replace('^local:', '') }}
+{% endif %}
 
 [Service]
 Type=oneshot
@@ -20,10 +23,8 @@ Environment="RESTIC_PASSWORD={{ restic_password}}"
 
 {% if restic_aws_access_key_id is defined and restic_aws_secret_access_key is defined %}
 EnvironmentFile={{ restic_user_home }}/.restic-backup.env
+
 {% endif %}
-
-ExecStartPre=/bin/sh -c '{{ restic_path }} snapshots || {{ restic_path }} init'
-
 {% if restic_check %}
 ExecStartPre={{ restic_path }} check
 {% endif -%}

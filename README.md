@@ -19,6 +19,7 @@ If you want to force the installation, overwrite the binary or update restic, yo
 - `restic_password`: password used for repository encryption
 - `restic_password_file`: file to use for password for repository encryption
 - `restic_repository_name`: the name of the repository (`restic`)
+- `restic_init`: create the repository if it doesn't exist (`false`); see [Repository initialization](#repository-initialization)
 - `restic_check`: run `restic check` as `ExecStartPre` if true (`false`)
 - `restic_default_folders`: a default list of folders that restic will backup (`/etc/`, `/root` and `/var/log`)
 - `restic_folders`: the list of folder you want to backup
@@ -55,6 +56,18 @@ The SSH configuration will be written in `{{ restic_user_home }}/.ssh/config`.
 - `restic_aws_secret_access_key`: `AWS_SECRET_ACCESS_KEY`
 
 The keys are written to `{{ restic_user_home }}/.restic-backup.env` (mode `0600`), which the service loads with `EnvironmentFile=`, so they stay out of the world-readable unit file. They are also in `{{ restic_user_home }}/.restic_env` for running restic from a shell.
+
+### Repository initialization
+
+The role never creates a repository on its own, and the backup service never runs `restic init`. A missing repository can be a network share that failed to mount, and `restic init` would then create a new, empty repository on the local disk under the bare mount point.
+
+On each run the role checks the repository with `restic cat config` (read-only, `--no-lock`). If it is missing, the play stops with restic's error. For a new repository, run the play once with `--extra-vars restic_init=true`. Don't set `restic_init` in inventory: it would bring back the risk above.
+
+This needs restic 0.17 or later, which exits with code 10 when a repository doesn't exist.
+
+### Repositories on a mounted filesystem
+
+For a local-path repository (`/path` or `local:/path`), the service has `RequiresMountsFor=` on that path. systemd then mounts the filesystems the path is on before the backup, and the backup fails instead of running if a mount fails. For a path on the root filesystem this adds nothing.
 
 ### Sytemd service and timer
 
